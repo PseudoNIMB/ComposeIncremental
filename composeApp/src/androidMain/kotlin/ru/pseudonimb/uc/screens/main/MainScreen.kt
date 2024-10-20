@@ -1,5 +1,8 @@
-package ru.pseudonimb.uc
+package ru.pseudonimb.uc.screens.main
 
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.preference.PreferenceManager.getDefaultSharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -7,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.runtime.*
@@ -16,20 +18,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.Resource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.vectorResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-const val NUMBER_CONST = 10
+import org.kodein.di.compose.rememberDI
+import org.kodein.di.instance
+import ru.pseudonimb.uc.R
+import ultimateclicker.composeapp.generated.resources.Res
+import ultimateclicker.composeapp.generated.resources.compose_multiplatform
+import ultimateclicker.composeapp.generated.resources.upgrade
 
 @Composable
 @Preview
-fun App() {
+fun MainScreen() {
+    val vm: MainViewModel by rememberDI { instance() }
+    val state by vm.mainState.collectAsState()
+
+    val sharedPref = getDefaultSharedPreferences(LocalContext.current)
+    var number by remember { mutableIntStateOf(state.number) }
+    var numberModifier by remember { mutableIntStateOf(state.numberModifier) }
+
+    number = sharedPref.getInt("number", 0)
+    numberModifier = sharedPref.getInt("numberModifier", 1)
+
     MaterialTheme {
-        var number by remember { mutableIntStateOf(0) }
-        var numberModifier by remember { mutableIntStateOf(1) }
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -53,8 +71,14 @@ fun App() {
                     ) {
                         //Кнопка прибавления
                         IconButton(
-                            onClick = { number++ },
-                            enabled = number < NUMBER_CONST * numberModifier
+                            onClick = {
+                                number++
+                                with (sharedPref.edit()) {
+                                    putInt("number", number)
+                                    apply()
+                                }
+                            },
+                            enabled = number < state.NUMBER_CONST * numberModifier
                         ) {
                             Icon(
                                 Icons.Default.Add,
@@ -75,16 +99,30 @@ fun App() {
                             onClick = {
                                 number = 0
                                 numberModifier *= 2
+                                with (sharedPref.edit()) {
+                                    putInt("numberModifier", numberModifier)
+                                    apply()
+                                }
                             },
-                            enabled = number >= NUMBER_CONST * numberModifier
+                            enabled = number >= state.NUMBER_CONST * numberModifier
                         ) {
                             Icon(
-                                Icons.Default.Done,
+                                painter = painterResource(resource = Res.drawable.upgrade),
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
                     }
+
+                    var finalLevelCount = numberModifier
+                    var finalLevel = 0
+
+                    while (finalLevelCount > 1) {
+                        finalLevelCount /= 2
+                        finalLevel++
+                    }
+
+                    Text(text= "level " + (finalLevel+1), modifier = Modifier.padding(horizontal = 40.dp))
                 }
             }
         }

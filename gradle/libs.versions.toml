@@ -15,6 +15,7 @@ compose-plugin = "1.6.11"
 junit = "4.13.2"
 kotlin = "2.0.20"
 material3Android = "1.3.0"
+kodeinDI = "7.20.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -30,6 +31,10 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
+
+kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDI" }
+kodein-di-compose = { module = "org.kodein.di:kodein-di-framework-compose", version.ref = "kodeinDI" }
+kodein-di-framework-android-x = { module = "org.kodein.di:kodein-di-framework-android-x", version.ref = "kodeinDI" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

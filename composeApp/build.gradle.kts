@@ -32,6 +32,10 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+
+            implementation(libs.kodein.di)
+            implementation(libs.kodein.di.framework.android.x)
+            implementation(libs.kodein.di.compose)
         }
     }
 }
