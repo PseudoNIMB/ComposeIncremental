@@ -199,7 +199,7 @@ fun ShowProgress(score: Int, numberModifier: Int) {
                     .fillMaxHeight(0.87f)
                     .fillMaxWidth()
                     .padding(vertical = 11.dp),
-                color = Color(0xFFFFFFFF),
+                color = MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center,
                 fontSize = 32.sp
             )
