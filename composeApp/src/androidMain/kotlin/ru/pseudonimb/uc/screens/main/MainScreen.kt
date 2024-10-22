@@ -3,8 +3,11 @@ package ru.pseudonimb.uc.screens.main
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.preference.PreferenceManager.getDefaultSharedPreferences
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
+import androidx.compose.foundation.content.MediaType.Companion.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,22 +19,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.Resource
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.vectorResource
+import org.jetbrains.compose.resources.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.kodein.di.compose.rememberDI
 import org.kodein.di.instance
 import ru.pseudonimb.uc.R
 import ultimateclicker.composeapp.generated.resources.Res
 import ultimateclicker.composeapp.generated.resources.compose_multiplatform
+import ultimateclicker.composeapp.generated.resources.textolite
 import ultimateclicker.composeapp.generated.resources.upgrade
 
 @Composable
@@ -43,6 +46,7 @@ fun MainScreen() {
     val sharedPref = getDefaultSharedPreferences(LocalContext.current)
     var number by remember { mutableIntStateOf(state.number) }
     var numberModifier by remember { mutableIntStateOf(state.numberModifier) }
+    val scrollState = rememberScrollState()
 
     number = sharedPref.getInt("number", 0)
     numberModifier = sharedPref.getInt("numberModifier", 1)
@@ -52,77 +56,80 @@ fun MainScreen() {
             modifier = Modifier.fillMaxSize()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                modifier = Modifier.fillMaxWidth().verticalScroll(state = scrollState),
             ) {
-                OutlinedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(32.dp),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                repeat(5) {
+                    OutlinedCard(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        elevation = CardDefaults.cardElevation(4.dp),
+                        shape = RoundedCornerShape(32.dp)
                     ) {
-                        Text(text = "Здесь короткое описание / название детали или продукта с картинкой")
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        //Кнопка прибавления
-                        IconButton(
-                            onClick = {
-                                number++
-                                with (sharedPref.edit()) {
-                                    putInt("number", number)
-                                    apply()
+                        Image(
+                            painter = painterResource(Res.drawable.textolite),
+                            contentDescription = "",
+                            modifier = Modifier.fillMaxWidth().height(120.dp).clickable {
+                                //Прибавление к счётчику
+                                if (number < state.NUMBER_CONST * numberModifier) {
+                                    number++
+                                    with(sharedPref.edit()) {
+                                        putInt("number", number)
+                                        apply()
+                                    }
                                 }
                             },
-                            enabled = number < state.NUMBER_CONST * numberModifier
+                            contentScale = ContentScale.Crop
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            Text(text = "Здесь короткое описание / название детали или продукта с картинкой")
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.weight(0.7f)
+                            ) {
+                                ShowProgress(number * numberModifier, numberModifier)
+                            }
+
+                            //Кнопка улучшения
+                            IconButton(
+                                onClick = {
+                                    number = 0
+                                    numberModifier *= 2
+                                    with(sharedPref.edit()) {
+                                        putInt("numberModifier", numberModifier)
+                                        apply()
+                                    }
+                                },
+                                enabled = number >= state.NUMBER_CONST * numberModifier
+                            ) {
+                                Icon(
+                                    painter = painterResource(resource = Res.drawable.upgrade),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
 
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(0.7f)
-                        ) {
-                            ShowProgress(number * numberModifier, numberModifier)
+                        var finalLevelCount = numberModifier
+                        var finalLevel = 0
+
+                        while (finalLevelCount > 1) {
+                            finalLevelCount /= 2
+                            finalLevel++
                         }
 
-                        //Кнопка улучшения
-                        IconButton(
-                            onClick = {
-                                number = 0
-                                numberModifier *= 2
-                                with (sharedPref.edit()) {
-                                    putInt("numberModifier", numberModifier)
-                                    apply()
-                                }
-                            },
-                            enabled = number >= state.NUMBER_CONST * numberModifier
-                        ) {
-                            Icon(
-                                painter = painterResource(resource = Res.drawable.upgrade),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                        Text(text = "level " + (finalLevel + 1), modifier = Modifier.padding(horizontal = 40.dp))
                     }
-
-                    var finalLevelCount = numberModifier
-                    var finalLevel = 0
-
-                    while (finalLevelCount > 1) {
-                        finalLevelCount /= 2
-                        finalLevel++
-                    }
-
-                    Text(text= "level " + (finalLevel+1), modifier = Modifier.padding(horizontal = 40.dp))
                 }
             }
         }
@@ -135,8 +142,8 @@ fun ShowProgress(score: Int, numberModifier: Int) {
 
     val gradient = Brush.linearGradient(
         listOf(
-            Color(0xFFF95075),
-            Color(0xFFBE6BE5)
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.secondary
         )
     )
 
@@ -151,8 +158,8 @@ fun ShowProgress(score: Int, numberModifier: Int) {
                 width = 4.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFFF95075),
-                        Color(0xFFBE6BE5)
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.secondary
                     )
                 ),
                 shape = RoundedCornerShape(50.dp)
